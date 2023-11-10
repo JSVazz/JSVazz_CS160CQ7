@@ -1,0 +1,112 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.regex.*;
+import java.util.stream.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
+class Result {
+
+    /*
+     * Complete the 'icecreamParlor' function below.
+     *
+     * The function is expected to return an INTEGER_ARRAY.
+     * The function accepts following parameters:
+     *  1. INTEGER m
+     *  2. INTEGER_ARRAY arr
+     */
+     
+    private static int findCost(List<Integer> arr, int target, int exclude) {
+        for (int i = 0; i < arr.size(); i++) {
+            if (i + 1 != exclude && arr.get(i) == target) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static Integer icecreamParlor(int m, List<Integer> arr) {
+    // Write your code here
+        int totalSolutions = 0;
+        int arrLen = arr.size();
+        Integer[][] TFTable = new Integer[arrLen + 1][m + 1];
+        int row = TFTable.length;
+        int col = TFTable[0].length;
+
+        for (int i = 1; i < row; i++) {
+            for (int j = 0; j < col; j++) {
+                TFTable[0][j] = 1;
+                int keep = arr.get(i - 1);
+                if (j - keep >= 0) {
+                    TFTable[i][j] = 0;
+                } else {
+                    int skip = TFTable[i - 1][j];
+                    if (skip <= 0) {
+                        TFTable[i][j] = skip - 1;
+                    } else {
+                        TFTable[i][j] = 1;
+                    }
+                }
+            }
+        }
+
+        for (int i = 1; i < row; i++) {
+            int person1Cost = arr.get(i - 1);
+            int remainingBudget = m - person1Cost;
+
+            if (remainingBudget > 0) {
+                int person2Index = findCost(arr, remainingBudget, i);
+                if (person2Index != -1) {
+                    int person2Cost = arr.get(person2Index);
+                    int currentSum = person1Cost + person2Cost;
+                    if (currentSum == m) {
+                        totalSolutions++;
+                    }
+                }
+            }
+        }
+        return totalSolutions;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int t = Integer.parseInt(bufferedReader.readLine().trim());
+
+        IntStream.range(0, t).forEach(tItr -> {
+            try {
+                int m = Integer.parseInt(bufferedReader.readLine().trim());
+
+                int n = Integer.parseInt(bufferedReader.readLine().trim());
+
+                List<Integer> arr = Stream.of(bufferedReader.readLine().replaceAll("\\s+$", "").split(" "))
+                    .map(Integer::parseInt)
+                    .collect(toList());
+
+                Integer result = Result.icecreamParlor(m, arr);
+                bufferedWriter.write(result.toString() + "\n");
+                
+                // bufferedWriter.write(
+                //     result.stream()
+                //         .map(Object::toString)
+                //         .collect(joining(" "))
+                //     + "\n"
+                // );
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
